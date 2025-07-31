@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信群聊投资项目分析系统</title>
+    <meta name="description" content="微信群聊投资项目分析系统 - 智能分析群聊内容，统计热门项目">
+    <meta name="keywords" content="微信分析,投资项目,数据分析,群聊统计">
+    <meta property="og:title" content="微信群聊投资项目分析系统">
+    <meta property="og:description" content="手动输入群聊内容，智能分析投资项目热度">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 微信群聊投资项目分析系统</h1>
+            <div class="status-indicator">
+                <span id="analysisStatus">就绪</span>
+                <div class="status-dot" id="statusDot"></div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- 数据输入面板 -->
+            <div class="panel input-panel">
+                <h2>📝 数据输入</h2>
+                <div class="input-section">
+                    <div class="input-header">
+                        <label for="groupNameInput">群聊名称：</label>
+                        <input type="text" id="groupNameInput" placeholder="请输入群聊名称" class="group-name-input">
+                    </div>
+                    
+                    <label for="messageInput">群聊内容：</label>
+                    <textarea id="messageInput" placeholder="请粘贴群聊消息内容...&#10;&#10;支持格式：&#10;张三 12:30&#10;BTC今天涨了不少啊&#10;&#10;李四 12:31&#10;ETH的DeFi项目很有潜力&#10;&#10;或直接粘贴微信聊天记录"></textarea>
+                    
+                    <div class="input-controls">
+                        <button id="analyzeBtn" class="btn primary">🔍 开始分析</button>
+                        <button id="clearInputBtn" class="btn secondary">🗑️ 清空内容</button>
+                        <button id="addSampleBtn" class="btn info">📋 添加示例数据</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 项目关键词配置 -->
+            <div class="panel config-panel">
+                <h2>⚙️ 分析配置</h2>
+                <div class="config-section">
+                    <label for="keywordsInput">项目关键词：</label>
+                    <textarea id="keywordsInput" placeholder="请输入项目相关关键词，用逗号分隔"></textarea>
+                    <div class="keyword-suggestions">
+                        <span class="suggestion-label">常用关键词：</span>
+                        <div class="keyword-tags">
+                            <span class="keyword-tag" onclick="addKeyword('BTC')">BTC</span>
+                            <span class="keyword-tag" onclick="addKeyword('ETH')">ETH</span>
+                            <span class="keyword-tag" onclick="addKeyword('投资')">投资</span>
+                            <span class="keyword-tag" onclick="addKeyword('项目')">项目</span>
+                            <span class="keyword-tag" onclick="addKeyword('DeFi')">DeFi</span>
+                            <span class="keyword-tag" onclick="addKeyword('NFT')">NFT</span>
+                            <span class="keyword-tag" onclick="addKeyword('区块链')">区块链</span>
+                            <span class="keyword-tag" onclick="addKeyword('挖矿')">挖矿</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-section">
+                    <label>分析选项：</label>
+                    <div class="analysis-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="caseSensitive"> 区分大小写
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="includePartial" checked> 包含部分匹配
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoSave" checked> 自动保存结果
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时分析结果 -->
+            <div class="panel analysis-panel">
+                <h2>🔍 分析结果</h2>
+                <div class="analysis-summary">
+                    <div class="summary-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalMessagesCount">0</div>
+                            <div class="stat-label">总消息数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="projectMentionsCount">0</div>
+                            <div class="stat-label">项目提及</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="uniqueProjectsCount">0</div>
+                            <div class="stat-label">独特项目</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="activeUsersCount">0</div>
+                            <div class="stat-label">活跃用户</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-details">
+                    <h3>📋 检测到的项目消息</h3>
+                    <div class="detected-messages" id="detectedMessages">
+                        <div class="no-data">暂无分析数据，请先输入群聊内容</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 热门项目TOP3 -->
+            <div class="panel ranking-panel">
+                <h2>🏆 热门项目排行</h2>
+                <div class="ranking-controls">
+                    <select id="timeFilter">
+                        <option value="all">全部时间</option>
+                        <option value="today">今日</option>
+                        <option value="week">本周</option>
+                        <option value="month">本月</option>
+                    </select>
+                    <button id="refreshRankingBtn" class="btn info">🔄 刷新排行</button>
+                </div>
+                
+                <div class="top-projects">
+                    <div class="project-ranking" id="projectRanking">
+                        <div class="rank-item">
+                            <div class="rank-badge gold">1</div>
+                            <div class="project-info">
+                                <div class="project-name">暂无数据</div>
+                                <div class="mention-stats">
+                                    <span class="mention-count">0 次提及</span>
+                                    <span class="user-count">0 人讨论</span>
+                                </div>
+                            </div>
+                            <div class="trend-indicator">📈</div>
+                        </div>
+                        <div class="rank-item">
+                            <div class="rank-badge silver">2</div>
+                            <div class="project-info">
+                                <div class="project-name">暂无数据</div>
+                                <div class="mention-stats">
+                                    <span class="mention-count">0 次提及</span>
+                                    <span class="user-count">0 人讨论</span>
+                                </div>
+                            </div>
+                            <div class="trend-indicator">📊</div>
+                        </div>
+                        <div class="rank-item">
+                            <div class="rank-badge bronze">3</div>
+                            <div class="project-info">
+                                <div class="project-name">暂无数据</div>
+                                <div class="mention-stats">
+                                    <span class="mention-count">0 次提及</span>
+                                    <span class="user-count">0 人讨论</span>
+                                </div>
+                            </div>
+                            <div class="trend-indicator">📉</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="panel data-panel">
+                <h2>💾 数据管理</h2>
+                <div class="data-controls">
+                    <div class="control-group">
+                        <h3>📤 导出数据</h3>
+                        <div class="export-buttons">
+                            <button id="exportJsonBtn" class="btn success">📄 导出JSON</button>
+                            <button id="exportCsvBtn" class="btn success">📊 导出CSV</button>
+                            <button id="exportReportBtn" class="btn success">📋 导出报告</button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>📥 导入数据</h3>
+                        <div class="import-controls">
+                            <input type="file" id="importFileInput" accept=".json,.csv" style="display: none;">
+                            <button id="importBtn" class="btn info">📁 导入文件</button>
+                            <button id="clearAllBtn" class="btn danger">🗑️ 清空所有数据</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知系统 -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
